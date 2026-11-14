@@ -1,5 +1,6 @@
 # Omni CLI
 
+website link=https://mathisha-yumeth-main.github.io/omni-cli/
 One terminal app for **Ollama, Claude, Gemini, OpenAI and xAI (Grok)**, on Windows, Linux and macOS.
 Zero dependencies. Just Node.js 18+.
 
