@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Omni CLI — One terminal for every AI</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#eceaf8;--text:#16151f;--muted:#55536b;--a:#6d4aff;--b:#00b3a4;--c:#ff5fa2;
+--g1:rgba(255,255,255,.55);--g2:rgba(255,255,255,.18);--gb:rgba(255,255,255,.7);--gs:rgba(70,50,170,.18);--term:rgba(15,14,23,.82);--termt:#d9d7ee}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#07060d;--text:#f1f0fa;--muted:#a3a1bd;--a:#8f74ff;--b:#2dd4bf;--g1:rgba(255,255,255,.14);--g2:rgba(255,255,255,.04);--gb:rgba(255,255,255,.28);--gs:rgba(0,0,0,.55);--term:rgba(4,3,9,.75)}}
+:root[data-theme="dark"]{--bg:#07060d;--text:#f1f0fa;--muted:#a3a1bd;--a:#8f74ff;--b:#2dd4bf;--g1:rgba(255,255,255,.14);--g2:rgba(255,255,255,.04);--gb:rgba(255,255,255,.28);--gs:rgba(0,0,0,.55);--term:rgba(4,3,9,.75)}
+html{scroll-padding-top:90px;scroll-behavior:smooth}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow-x:hidden}
+.blob{position:fixed;border-radius:50%;filter:blur(70px);opacity:.75;z-index:-1;will-change:transform}
+.b1{width:480px;height:480px;background:var(--a);top:-120px;left:-100px}
+.b2{width:420px;height:420px;background:var(--b);top:30vh;right:-120px;opacity:.55}
+.b3{width:380px;height:380px;background:var(--c);bottom:-100px;left:25vw;opacity:.4}
+#prog{position:fixed;top:0;left:0;height:3px;width:100%;transform-origin:0 50%;transform:scaleX(0);background:linear-gradient(90deg,var(--a),var(--b),var(--c));z-index:30}
+/* liquid glass */
+.glass{position:relative;background:linear-gradient(135deg,var(--g1),var(--g2));backdrop-filter:blur(22px) saturate(1.8);-webkit-backdrop-filter:blur(22px) saturate(1.8);border:1px solid var(--gb);border-radius:24px;
+box-shadow:0 18px 50px -18px var(--gs),inset 0 1.5px 0 rgba(255,255,255,.65),inset 0 -1px 0 rgba(255,255,255,.12),inset 0 0 28px rgba(255,255,255,.07);overflow:hidden}
+.glass::before{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(260px circle at var(--mx,30%) var(--my,0%),rgba(255,255,255,.38),transparent 60%);opacity:.9;transition:opacity .3s}
+.wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+nav{position:fixed;top:calc(12px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);width:min(960px,calc(100% - 24px));z-index:20;display:flex;justify-content:space-between;align-items:center;padding:10px 14px 10px 18px;border-radius:99px;transition:width .4s,padding .4s}
+nav.sm{width:min(560px,calc(100% - 24px))}
+.logo{font-weight:800;letter-spacing:-.5px;display:flex;gap:10px;align-items:center;position:relative}
+.logo i{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--a),var(--b));display:grid;place-items:center;color:#fff;font-style:normal;font-size:14px;box-shadow:inset 0 1px 2px rgba(255,255,255,.6)}
+.nb{position:relative;display:flex;gap:8px;align-items:center}
+.nb a{color:var(--text);text-decoration:none;font-weight:600;font-size:14px;padding:8px 14px;border-radius:99px}
+.nb a.dl{background:linear-gradient(135deg,var(--a),var(--b));color:#fff}
+@media(max-width:560px){.nb a.t{display:none}}
+.hero{text-align:center;padding:130px 0 30px}
+.pill{display:inline-block;padding:7px 16px;border-radius:99px;font-size:13px;font-weight:600;color:var(--muted)}
+h1{font-size:clamp(40px,7.5vw,76px);line-height:1.03;letter-spacing:-2.5px;margin:22px 0 18px;font-weight:850}
+.grad{background:linear-gradient(100deg,var(--a),var(--b),var(--c));background-size:200%;animation:sh 6s linear infinite;-webkit-background-clip:text;background-clip:text;color:transparent}
+@keyframes sh{to{background-position:200%}}
+.hero p.sub{max-width:620px;margin:0 auto;color:var(--muted);font-size:19px}
+.btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:30px 0 10px}
+.btn{display:inline-flex;align-items:center;gap:9px;padding:14px 26px;border-radius:99px;font-weight:700;text-decoration:none;font-size:16px;transition:transform .2s;color:var(--text)}
+.btn:hover{transform:translateY(-3px) scale(1.03)}
+.btn.p{background:linear-gradient(135deg,var(--a),var(--b));color:#fff;box-shadow:0 12px 30px -8px var(--a),inset 0 1.5px 0 rgba(255,255,255,.5)}
+.btn.s{background:linear-gradient(135deg,var(--g1),var(--g2));border:1px solid var(--gb);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:inset 0 1.5px 0 rgba(255,255,255,.5)}
+.small{font-size:13px;color:var(--muted)}
+/* one command */
+.one{max-width:760px;margin:34px auto 0;padding:18px;text-align:left}
+.os{display:flex;gap:6px;margin-bottom:12px;position:relative}
+.os button{font:inherit;font-weight:700;font-size:13px;padding:7px 16px;border-radius:99px;border:1px solid transparent;background:transparent;color:var(--muted);cursor:pointer}
+.os button.on{background:linear-gradient(135deg,var(--a),var(--b));color:#fff}
+.cmdbox{position:relative;display:flex;gap:10px;align-items:flex-start;background:var(--term);border-radius:14px;padding:14px 16px;color:var(--termt)}
+.cmdbox code{flex:1;font:13px/1.6 ui-monospace,Consolas,monospace;word-break:break-all;color:#e9e7ff}
+.cmdbox code b{color:#8f74ff}
+.copy{font:inherit;font-weight:700;font-size:13px;border:0;border-radius:10px;padding:8px 14px;background:rgba(255,255,255,.15);color:#fff;cursor:pointer;flex:none}
+.copy.ok{background:#16a34a}
+.note{font-size:12.5px;color:var(--muted);margin:10px 4px 0;position:relative}
+.term{max-width:760px;margin:30px auto 0;text-align:left;background:var(--term);transition:transform .2s}
+.bar{display:flex;gap:7px;padding:13px 16px;background:rgba(255,255,255,.06);position:relative}
+.bar b{width:12px;height:12px;border-radius:50%;background:#ff5f57}.bar b:nth-child(2){background:#febc2e}.bar b:nth-child(3){background:#28c840}
+pre{margin:0;padding:18px 22px;font:14px/1.7 ui-monospace,"SF Mono",Consolas,monospace;color:var(--termt);min-height:230px;white-space:pre-wrap;overflow-x:auto;position:relative}
+.c1{color:#8f74ff}.c2{color:#2dd4bf}.c3{color:#8a88a6}.c4{color:#fbbf24}
+section{padding:70px 0}
+h2{font-size:clamp(28px,4.5vw,44px);letter-spacing:-1.3px;margin:0 0 10px;line-height:1.15}
+.lead{color:var(--muted);max-width:600px;margin:0 0 34px;font-size:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
+.card{padding:26px;transition:transform .3s}
+.card:hover{transform:translateY(-6px)}
+.card>*{position:relative}
+.ic{font-size:30px}.card h3{margin:12px 0 6px;font-size:18px}.card p{margin:0;color:var(--muted);font-size:15px}
+.prov{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:22px}
+.prov span{padding:9px 18px;border-radius:99px;font-weight:700}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;counter-reset:s}
+.step{padding:26px 22px}
+.step::after{counter-increment:s;content:counter(s);display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--a),var(--b));color:#fff;font-weight:800;margin-bottom:12px;order:-1;position:relative;box-shadow:inset 0 1px 2px rgba(255,255,255,.6)}
+.step{display:flex;flex-direction:column}.step h3{margin:0 0 6px;position:relative}.step p{margin:0;color:var(--muted);font-size:15px;position:relative}
+code.i{font:13px ui-monospace,Consolas,monospace;background:rgba(127,110,255,.18);padding:2px 7px;border-radius:6px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.tabs button{font:inherit;font-weight:600;font-size:14px;padding:8px 18px;border-radius:99px;border:1px solid var(--gb);background:linear-gradient(135deg,var(--g1),var(--g2));backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);color:var(--muted);cursor:pointer}
+.tabs button.on{background:linear-gradient(135deg,var(--a),var(--b));color:#fff;border-color:transparent}
+.cmds{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:10px}
+.cmd{padding:13px 18px;border-radius:16px;font-size:14.5px;color:var(--muted)}
+.cmd *{position:relative}.cmd code{color:var(--a);font-weight:700;margin-right:6px}
+.cta{text-align:center;padding:60px 24px;margin-bottom:50px}
+.cta>*{position:relative}.cta p{color:var(--muted);margin:0 auto 6px;max-width:480px}
+footer{text-align:center;padding:10px 0 40px;color:var(--muted);font-size:14px}
+.rv{opacity:0;transform:translateY(40px) scale(.97);filter:blur(8px);transition:opacity .8s,transform .8s cubic-bezier(.2,.8,.2,1),filter .8s}
+.rv.in{opacity:1;transform:none;filter:none}
+@media (prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;filter:none;transition:none}.grad{animation:none}html{scroll-behavior:auto}}
+.blob{transition:background .8s}
+.tg{font:inherit;border:0;background:transparent;color:var(--text);font-size:17px;cursor:pointer;padding:6px 10px;border-radius:99px;position:relative}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin:50px 0 0}
+.stat{padding:22px 10px;text-align:center}.stat *{position:relative}
+.stat b{display:block;font-size:clamp(32px,5vw,46px);letter-spacing:-1.5px;line-height:1.1;background:linear-gradient(100deg,var(--a),var(--b));-webkit-background-clip:text;background-clip:text;color:transparent}
+.stat span{font-size:13px;color:var(--muted);font-weight:600}
+.sw{padding:26px;margin-bottom:22px}.sw>*{position:relative}
+.pt{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.pt button{font:inherit;font-weight:700;font-size:14px;padding:9px 18px;border-radius:99px;border:1px solid var(--gb);background:transparent;color:var(--muted);cursor:pointer;transition:all .3s}
+.pt button.on{background:var(--a);color:#fff;border-color:transparent;box-shadow:0 8px 22px -8px var(--a)}
+.sw .row{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.orb{width:64px;height:64px;border-radius:50%;flex:none;background:radial-gradient(circle at 30% 25%,#fff9,transparent 40%),var(--a);box-shadow:0 0 40px var(--a),inset 0 -6px 14px rgba(0,0,0,.25);animation:fl 4s ease-in-out infinite;transition:background .6s,box-shadow .6s}
+@keyframes fl{50%{transform:translateY(-8px)}}
+.sw p{margin:0;color:var(--muted)}.sw code{display:inline-block;margin-top:6px;background:var(--term);color:#e9e7ff;padding:6px 12px;border-radius:10px;font:13px ui-monospace,Consolas,monospace}
+.flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;margin-top:22px}
+.fn{flex:1;min-width:150px;padding:18px;text-align:center;font-weight:700;font-size:14px;transition:transform .4s,box-shadow .4s}
+.fn *{position:relative}.fn small{display:block;font-weight:500;color:var(--muted);margin-top:4px}
+.fn.hot{transform:translateY(-6px) scale(1.04);box-shadow:0 0 0 2px var(--a),0 18px 40px -10px var(--a)}
+.ar{align-self:center;padding:0 6px;color:var(--a);font-size:22px;font-weight:800}
+@media(max-width:700px){.ar{width:100%;text-align:center;transform:rotate(90deg)}}
+.chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+.chips i{font-style:normal;font-size:11px;padding:3px 9px;border-radius:99px;background:rgba(127,110,255,.2);font-weight:600}
+</style>
+</head>
+<body>
+<div id="prog"></div>
+<div class="blob b1" data-s=".25"></div><div class="blob b2" data-s="-.18"></div><div class="blob b3" data-s=".12"></div>
+
+<nav class="glass" id="nav"><div class="logo"><i>◎</i>Omni CLI</div>
+<div class="nb"><a class="t" href="#features">Features</a><a class="t" href="#how">How it works</a><button class="tg" id="tg" aria-label="Toggle theme">◐</button><a class="dl" href="#install">Install</a></div></nav>
+
+<div class="wrap">
+<header class="hero">
+<span class="pill glass">v1.3 · Zero dependencies · Node.js 18+</span>
+<h1>One terminal for <span class="grad">every AI.</span></h1>
+<p class="sub">Chat with Ollama, Claude, Gemini, OpenAI and Grok from a single CLI — with 463 auto-routed skills and a 35-tool coding agent.</p>
+
+<div class="one glass" id="install">
+<div class="os" id="os"></div>
+<div class="cmdbox"><code id="cmd"></code><button class="copy" id="copy">Copy</button></div>
+<div class="note" id="note"></div>
+</div>
+
+<div class="btns">
+<a class="btn p" href="https://codeload.github.com/mathisha-yumeth-main/omni-cli/zip/refs/heads/main">⬇ Download ZIP</a>
+<a class="btn s" href="https://github.com/mathisha-yumeth-main/omni-cli" target="_blank" rel="noopener">★ View on GitHub</a>
+</div>
+<div class="small">Windows · Linux · macOS</div>
+<div class="term glass" id="term"><div class="bar"><b></b><b></b><b></b></div><pre id="t"></pre></div>
+</header>
+
+<div class="stats">
+<div class="stat glass rv"><b data-n="463">0</b><span>auto-routed skills</span></div>
+<div class="stat glass rv"><b data-n="35">0</b><span>agent tools</span></div>
+<div class="stat glass rv"><b data-n="5">0</b><span>AI providers</span></div>
+<div class="stat glass rv"><b data-n="0">0</b><span>dependencies</span></div>
+</div>
+
+<section id="features">
+<h2 class="rv">Everything in one place</h2>
+<p class="lead rv">Switch providers with one command. Keys, history and knowledge base live in <code class="i">~/.omni</code>.</p>
+<div class="prov rv"><span class="glass">🦙 Ollama</span><span class="glass">🟠 Claude</span><span class="glass">🔷 Gemini</span><span class="glass">🟢 OpenAI</span><span class="glass">⚫ xAI Grok</span></div>
+<div class="grid">
+<div class="card glass rv"><div class="ic">⚡</div><h3>463 smart skills</h3><p>Every message is scored against all skills and the best few are injected automatically, so small local models keep their context.</p></div>
+<div class="card glass rv"><div class="ic">🤖</div><h3>Agent mode</h3><p>35 tools: edit files, grep, run tests, git, web search and more. Risky actions ask first.</p></div>
+<div class="card glass rv"><div class="ic">🛠</div><h3>Developer commands</h3><p><code class="i">/review</code> <code class="i">/commit</code> <code class="i">/test</code> <code class="i">/refactor</code> — git-aware, diff-friendly.</p></div>
+<div class="card glass rv"><div class="ic">🧠</div><h3>Knowledge base</h3><p><code class="i">/kb add</code> files or folders; relevant chunks are injected automatically.</p></div>
+<div class="card glass rv"><div class="ic">🏁</div><h3>Compare models</h3><p><code class="i">/each</code> asks every installed Ollama model the same thing and ranks speed.</p></div>
+<div class="card glass rv"><div class="ic">🧩</div><h3>Custom macros</h3><p>Make your own slash commands with <code class="i">/macro add</code>.</p></div>
+</div>
+</section>
+
+<section id="how">
+<h2 class="rv">How it works</h2>
+<p class="lead rv">Four steps from install to your first answer. Try switching provider — the whole page recolours, just like the CLI logo.</p>
+<div class="sw glass rv"><div class="pt" id="pt"></div>
+<div class="row"><div class="orb"></div><div><p id="pd"></p><code id="pc"></code></div></div></div>
+<div class="flow rv" id="flow">
+<div class="fn glass">💬 Your message<small>prompt, @files, !cmds</small></div><div class="ar">→</div>
+<div class="fn glass">⚡ Skill router<small>scores 463 skills</small><div class="chips"><i>debug</i><i>testing</i><i>expert-js</i><i>+1</i></div></div><div class="ar">→</div>
+<div class="fn glass">🧠 Provider<small>Ollama · Claude · Gemini…</small></div><div class="ar">→</div>
+<div class="fn glass">🤖 Agent tools<small>read · edit · test · git</small></div><div class="ar">→</div>
+<div class="fn glass">✨ Streamed answer<small>styled code &amp; markdown</small></div>
+</div>
+<br>
+<div class="steps">
+<div class="step glass rv"><h3>Install</h3><p>One command downloads and installs Omni.</p></div>
+<div class="step glass rv"><h3>Pick a provider</h3><p><code class="i">/provider claude</code> then <code class="i">/key claude sk-…</code>. Ollama needs no key.</p></div>
+<div class="step glass rv"><h3>Skills route</h3><p>Your message is scored; the best skills and knowledge chunks are injected.</p></div>
+<div class="step glass rv"><h3>Chat or act</h3><p>Stream answers, or <code class="i">/agent on</code> to let the model read, edit and run.</p></div>
+</div>
+</section>
+
+<section>
+<h2 class="rv">Handy commands</h2>
+<p class="lead rv">A taste of what's built in.</p>
+<div class="tabs rv" id="tabs"></div>
+<div class="cmds" id="cmds"></div>
+</section>
+
+<div class="cta glass rv">
+<h2>Ready to try Omni?</h2>
+<p>Free and dependency-free. Copy the one-liner above, or grab the files.</p>
+<div class="btns">
+<a class="btn p" href="https://codeload.github.com/mathisha-yumeth-main/omni-cli/zip/refs/heads/main">⬇ Download ZIP</a>
+<a class="btn s" href="https://github.com/mathisha-yumeth-main/omni-cli" target="_blank" rel="noopener">Open GitHub project</a>
+</div></div>
+<footer>Omni CLI · <a href="https://github.com/mathisha-yumeth-main/omni-cli" style="color:inherit">github.com/mathisha-yumeth-main/omni-cli</a></footer>
+</div>
+
+<script>
+var U='https://codeload.github.com/mathisha-yumeth-main/omni-cli/zip/refs/heads/main';
+var C={
+Linux:{p:'$',c:'curl -fsSL '+U+' -o omni.zip && unzip -qo omni.zip && cd "$(dirname "$(find omni-cli-main -name install.sh | head -1)")" && sh install.sh',n:'Needs curl, unzip and Node.js 18+. Also works on macOS.'},
+macOS:{p:'$',c:'curl -fsSL '+U+' -o omni.zip && unzip -qo omni.zip && cd "$(dirname "$(find omni-cli-main -name install.sh | head -1)")" && sh install.sh',n:'Needs Node.js 18+. Run in Terminal.'},
+Windows:{p:'PS>',c:'iwr '+U+' -OutFile omni.zip; Expand-Archive -Force omni.zip .; cd (Split-Path (gci omni-cli-main -Recurse -Filter install.bat | select -First 1).FullName); .\\install.bat',n:'Run in PowerShell. Needs Node.js 18+. Windows Terminal looks best.'}};
+var cur='Linux',os=document.getElementById('os'),cmd=document.getElementById('cmd'),note=document.getElementById('note'),cp=document.getElementById('copy');
+function setOS(k){cur=k;cmd.innerHTML='<b>'+C[k].p+'</b> '+C[k].c.replace(/&/g,'&amp;').replace(/</g,'&lt;');note.textContent=C[k].n;
+[].forEach.call(os.children,function(b){b.className=b.textContent==k?'on':''})}
+Object.keys(C).forEach(function(k){var b=document.createElement('button');b.textContent=k;b.onclick=function(){setOS(k)};os.appendChild(b)});
+var ua=navigator.userAgent;setOS(/Win/.test(ua)?'Windows':/Mac/.test(ua)?'macOS':'Linux');
+cp.onclick=function(){var t=C[cur].c;function ok(){cp.textContent='Copied ✓';cp.className='copy ok';setTimeout(function(){cp.textContent='Copy';cp.className='copy'},1800)}
+try{navigator.clipboard.writeText(t).then(ok,fb)}catch(e){fb()}
+function fb(){var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy');ok()}catch(e){}a.remove()}};
+/* terminal demo */
+var L=['<span class="c1">$</span> omni','<span class="c3">◎ Omni v1.3 · ollama · qwen3 · main*</span>','<span class="c1">❯</span> /provider claude:opus','<span class="c2">✓ switched to claude (opus)</span>','<span class="c1">❯</span> fix the failing test in utils.js','<span class="c4">⚡ skills: debug, expert-javascript, testing</span>','<span class="c2">● run_tests → 1 failed</span>','<span class="c2">● edit utils.js → patched</span>','<span class="c2">● run_tests → all passed ✓</span>'];
+var el=document.getElementById('t'),i=0;(function n(){if(i<L.length){el.innerHTML+=(i?'\n':'')+L[i++];setTimeout(n,650)}})();
+/* commands tabs */
+var D={Chat:[['/provider','switch AI provider'],['/model','pick a model or alias'],['/effort','set thinking level'],['/each','ask every Ollama model']],Dev:[['/review','AI review of git changes'],['/commit','Conventional Commit message'],['/test','auto-detect & run tests'],['/refactor','edit a file with diff preview']],Scan:[['/todos','find TODOs'],['/secrets','detect leaked keys'],['/loc','count lines of code'],['/deps','list dependencies']],Tools:[['/uuid','generate UUIDs'],['/jwt','decode a token'],['/regex','test a pattern'],['/serve','static server for this folder']]};
+var tb=document.getElementById('tabs'),cm=document.getElementById('cmds');
+function show(k){cm.innerHTML=D[k].map(function(c){return '<div class="cmd glass"><code>'+c[0]+'</code>'+c[1]+'</div>'}).join('');[].forEach.call(tb.children,function(b){b.className=b.textContent==k?'on':''})}
+Object.keys(D).forEach(function(k){var b=document.createElement('button');b.textContent=k;b.onclick=function(){show(k)};tb.appendChild(b)});show('Chat');
+/* scroll reactions */
+var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){var s=[].indexOf.call(e.target.parentNode.children,e.target);e.target.style.transitionDelay=(s%4)*90+'ms';e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12});
+[].forEach.call(document.querySelectorAll('.rv'),function(x){io.observe(x)});
+var nav=document.getElementById('nav'),pr=document.getElementById('prog'),bl=document.querySelectorAll('.blob'),tm=document.getElementById('term'),tk=false;
+function onS(){var y=window.scrollY,h=document.documentElement.scrollHeight-innerHeight;
+pr.style.transform='scaleX('+(h>0?y/h:0)+')';nav.classList.toggle('sm',y>80);
+[].forEach.call(bl,function(b){b.style.transform='translate3d(0,'+(y*b.dataset.s)+'px,0)'});
+var r=tm.getBoundingClientRect(),p=Math.max(-1,Math.min(1,(r.top+r.height/2-innerHeight/2)/innerHeight));
+tm.style.transform='perspective(900px) rotateX('+(p*6)+'deg) scale('+(1-Math.abs(p)*.04)+')';tk=false}
+addEventListener('scroll',function(){if(!tk){tk=true;requestAnimationFrame(onS)}},{passive:true});onS();
+/* glass specular follows pointer */
+document.addEventListener('pointermove',function(e){var g=e.target.closest&&e.target.closest('.glass');if(g){var r=g.getBoundingClientRect();g.style.setProperty('--mx',(e.clientX-r.left)+'px');g.style.setProperty('--my',(e.clientY-r.top)+'px')}});
+/* counters */
+var co=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;co.unobserve(e.target);var t=+e.target.dataset.n,s=null;(function f(ts){s=s||ts;var p=Math.min(1,(ts-s)/1400);e.target.textContent=Math.round(t*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f)})(performance.now())})},{threshold:.5});
+[].forEach.call(document.querySelectorAll('[data-n]'),function(x){co.observe(x)});
+/* provider switcher */
+var P={Ollama:['#8b7bff','Run local models, no API key. Every installed model is probed for think, tools and vision.','/provider ollama'],Claude:['#d97757','Claude with sonnet, opus, haiku aliases and adjustable thinking effort.','/provider claude:opus'],Gemini:['#4285f4','Gemini with thinking budgets mapped to /effort.','/provider gemini'],OpenAI:['#10a37f','OpenAI models with reasoning effort control.','/provider openai'],Grok:['#9a9ab0','xAI Grok through the same interface.','/provider xai']};
+var pt=document.getElementById('pt');
+function pick(k){var r=document.documentElement.style;r.setProperty('--a',P[k][0]);document.getElementById('pd').textContent=P[k][1];document.getElementById('pc').textContent=P[k][2];[].forEach.call(pt.children,function(b){b.className=b.textContent==k?'on':''})}
+Object.keys(P).forEach(function(k){var b=document.createElement('button');b.textContent=k;b.onclick=function(){pick(k)};pt.appendChild(b)});pick('Ollama');
+/* flow highlight loop */
+var fn=document.querySelectorAll('#flow .fn'),fi=0;setInterval(function(){[].forEach.call(fn,function(n,j){n.classList.toggle('hot',j==fi)});fi=(fi+1)%fn.length},1100);
+/* theme toggle */
+var tg=document.getElementById('tg'),dk=matchMedia('(prefers-color-scheme:dark)').matches;
+tg.onclick=function(){dk=!dk;document.documentElement.setAttribute('data-theme',dk?'dark':'light')};
+</script>
+</body>
+</html>
